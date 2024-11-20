@@ -10,12 +10,16 @@ import { useSession } from "next-auth/react";
 import { FC, useEffect, useRef } from "react";
 import { ExtensionModel } from "../extensions-page/extension-services/models";
 import { ChatHeader } from "./chat-header/chat-header";
+import Link from "next/link";
 import {
   ChatDocumentModel,
   ChatMessageModel,
   ChatThreadModel,
 } from "./chat-services/models";
 import MessageContent from "./message-content";
+import Disclaimer from "../ui/chat/disclaimer";
+import { AlignCenter } from "lucide-react";
+import { useTheme } from "next-themes";
 
 interface ChatPageProps {
   messages: Array<ChatMessageModel>;
@@ -26,6 +30,7 @@ interface ChatPageProps {
 
 export const ChatPage: FC<ChatPageProps> = (props) => {
   const { data: session } = useSession();
+  const { theme } = useTheme();
 
   useEffect(() => {
     chatStore.initChatSession({
@@ -61,9 +66,10 @@ export const ChatPage: FC<ChatPageProps> = (props) => {
                 }}
                 profilePicture={
                   message.role === "assistant"
-                    ? "/ai-icon.png"
+                    ? theme === 'dark' ? "/logo-COMAU-white.png" : "/logo-COMAU.png"
                     : session?.user?.image
                 }
+                theme={theme}
               >
                 <MessageContent message={message} />
               </ChatMessageArea>
@@ -72,7 +78,14 @@ export const ChatPage: FC<ChatPageProps> = (props) => {
           {loading === "loading" && <ChatLoading />}
         </ChatMessageContentArea>
       </ChatMessageContainer>
-      <ChatInput />
+      
+      <div className="flex flex-col items-center mt-4">
+         <ChatInput />
+
+       <div className="mt-2 text-center text-sm">
+        <Disclaimer text={<>COMAU AICO generated content may be inaccurate. <Link target="_blank" href="https://drive.google.com/file/d/1OXkt4Z9hVoy4rXGFBOhzR9e0LJers5fJ/view">Refered Policy</Link>.</>}/>
+       </div>
+      </div> 
     </main>
   );
 };
