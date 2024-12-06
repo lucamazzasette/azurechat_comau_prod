@@ -29,7 +29,7 @@ export const ChatHeader: FC<Props> = (props) => {
           <div className="grid grid-rows-2 grid-flow-col gap-5 items-center">
             <div className="row-span-2">
               <Image
-                src={theme === 'dark' ? "/aico-white.png" : "/aico-blue.png"}
+                src={theme === 'dark' ? "/aico-christmas-white.png" : "/aico-christmas.png"}
                 alt={props.chatThread.name}
                 width={100}
                 height={100}
