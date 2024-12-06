@@ -22,28 +22,26 @@ import { getCurrentUser } from "../auth-page/helpers";
 import { MenuLink } from "./menu-link";
 import { UserProfile } from "./user-profile";
 import Image from "next/image";
+import { ThemeProvider } from "../theme/theme-provider";
+import { useTheme } from "next-themes";
 
 
 
 
 export const MainMenu = async () => {
   const user = await getCurrentUser();
+
  
-  
   return (
     <Menu>
       <MenuBar>
-        <MenuItemContainer>
+        <MenuItemContainer className="gap-y-2">
           <MenuItem tooltip="Corporate" asChild>
             <MenuLink href="https://www.comau.com/en/" ariaLabel="Go to the Corporate Site">
-              <Home/>
-              <Image 
-                src="/ai-icon.png"
-                width={80}
-                height={80}
-                quality={100}
-                alt="ai-icon"
-              />
+              {/* <Home/> */}
+                <Image className="dark:hidden" src="/logo.png" width={48} height={48} alt="ai-icon" />
+                <Image className="hidden dark:inline" src="/Logo-white.png" width={48} height={48} alt="ai-icon" />
+
             </MenuLink>
           </MenuItem>
           <MenuTrayToggle />
