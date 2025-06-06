@@ -4,17 +4,22 @@ import { RedirectToPage } from "../common/navigation-helpers";
 import { options } from "./auth-api";
 
 export const userSession = async (): Promise<UserModel | null> => {
-  const session = await getServerSession(options);
-  if (session && session.user) {
-    return {
-      name: session.user.name!,
-      image: session.user.image!,
-      email: session.user.email!,
-      isAdmin: session.user.isAdmin!,
-    };
+  try {
+    const session = await getServerSession(options);
+    if (session && session.user) {
+      return {
+        name: session.user.name!,
+        image: session.user.image!,
+        email: session.user.email!,
+        isAdmin: session.user.isAdmin!,
+      };
+    }
+    return null;
+  } catch (error) {
+    // Handle JWT decryption errors gracefully
+    console.warn('JWT session error - likely corrupted token or secret mismatch:', error);
+    return null;
   }
-
-  return null;
 };
 
 export const getCurrentUser = async (): Promise<UserModel> => {

@@ -24,3 +24,9 @@ export const RedirectToPage = (path: Page) => {
 export const RedirectToChatThread = (chatThreadId: string) => {
   redirect(`/chat/${chatThreadId}`);
 };
+
+export const RedirectToChat = () => {
+  // Use the standard redirect without options
+  // This should work in server actions
+  redirect(`/chat`);
+};

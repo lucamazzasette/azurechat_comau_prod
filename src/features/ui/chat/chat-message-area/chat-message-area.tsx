@@ -7,6 +7,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AssistantAvatar } from "@/features/ui/assistant-avatar";
 import { Avatar, AvatarImage } from "../../avatar";
 import { Button } from "../../button";
 
@@ -36,6 +37,8 @@ export const ChatMessageArea = (props: {
 
   switch (props.role) {
     case "assistant":
+      profile = <AssistantAvatar size={36} />;
+      break;
     case "user":
       if (props.profilePicture) {
         profile = (

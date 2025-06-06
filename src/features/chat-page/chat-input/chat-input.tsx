@@ -31,6 +31,7 @@ import {
   textToSpeechStore,
   useTextToSpeech,
 } from "./speech/use-text-to-speech";
+import { Disclaimer } from "@/features/ui/disclaimer";
 
 export const ChatInput = () => {
   const { loading, input, chatThreadId } = useChat();
@@ -49,6 +50,7 @@ export const ChatInput = () => {
   };
 
   return (
+    <>
     <ChatInputForm
       ref={formRef}
       onSubmit={(e) => {
@@ -101,5 +103,8 @@ export const ChatInput = () => {
         </ChatInputPrimaryActionArea>
       </ChatInputActionArea>
     </ChatInputForm>
+          <Disclaimer />
+    </>
+    
   );
 };

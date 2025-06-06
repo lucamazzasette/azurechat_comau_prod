@@ -4,6 +4,7 @@ import {
   ChatDocumentModel,
   ChatMessageModel,
 } from "@/features/chat-page/chat-services/models";
+import { AssistantAvatar } from "@/features/ui/assistant-avatar";
 import { ChatMessageArea } from "@/features/ui/chat/chat-message-area/chat-message-area";
 import ChatMessageContainer from "@/features/ui/chat/chat-message-area/chat-message-container";
 import ChatMessageContentArea from "@/features/ui/chat/chat-message-area/chat-message-content";
@@ -29,7 +30,7 @@ export default function ReportingChatPage(props: ReportingChatPageProps) {
                   navigator.clipboard.writeText(message.content);
                 }}
                 profilePicture={
-                  message.role === "assistant" ? "/ai-icon.png" : undefined
+                  message.role === "assistant" ? undefined : undefined
                 }
               >
                 <MessageContent message={message} />

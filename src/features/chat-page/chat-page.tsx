@@ -7,7 +7,8 @@ import ChatMessageContainer from "@/features/ui/chat/chat-message-area/chat-mess
 import ChatMessageContentArea from "@/features/ui/chat/chat-message-area/chat-message-content";
 import { useChatScrollAnchor } from "@/features/ui/chat/chat-message-area/use-chat-scroll-anchor";
 import { useSession } from "next-auth/react";
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useMemo } from "react";
+import { AssistantAvatar } from "@/features/ui/assistant-avatar";
 import { ExtensionModel } from "../extensions-page/extension-services/models";
 import { ChatHeader } from "./chat-header/chat-header";
 import {
@@ -16,6 +17,11 @@ import {
   ChatThreadModel,
 } from "./chat-services/models";
 import MessageContent from "./message-content";
+import { 
+  shouldShowPersonaIntro, 
+  generatePersonaIntroMessage, 
+  formatIntroMessageForChat 
+} from "./persona-intro-service";
 
 interface ChatPageProps {
   messages: Array<ChatMessageModel>;
@@ -33,9 +39,34 @@ export const ChatPage: FC<ChatPageProps> = (props) => {
       messages: props.messages,
       userName: session?.user?.name!,
     });
+    
+    // Enable auto-scroll by default for better UX (like Claude.ai)
+    chatStore.updateAutoScroll(true);
   }, [props.messages, session?.user?.name, props.chatThread]);
 
   const { messages, loading } = useChat();
+
+  // Generate persona introduction message if needed
+  const introMessage = useMemo(() => {
+    const shouldShowIntro = shouldShowPersonaIntro(props.chatThread, props.messages.length);
+    
+    if (shouldShowIntro) {
+      console.log(`[ChatPage] Generating persona intro for: ${props.chatThread.personaMessageTitle}`);
+      const intro = generatePersonaIntroMessage(props.chatThread);
+      return formatIntroMessageForChat(intro);
+    }
+    
+    return null;
+  }, [props.chatThread, props.messages.length]);
+
+  // Combine intro message with chat messages
+  const displayMessages = useMemo(() => {
+    if (introMessage) {
+      // Add intro message at the beginning
+      return [introMessage, ...messages];
+    }
+    return messages;
+  }, [introMessage, messages]);
 
   const current = useRef<HTMLDivElement>(null);
 
@@ -50,7 +81,7 @@ export const ChatPage: FC<ChatPageProps> = (props) => {
       />
       <ChatMessageContainer ref={current}>
         <ChatMessageContentArea>
-          {messages.map((message) => {
+          {displayMessages.map((message) => {
             return (
               <ChatMessageArea
                 key={message.id}
@@ -61,7 +92,7 @@ export const ChatPage: FC<ChatPageProps> = (props) => {
                 }}
                 profilePicture={
                   message.role === "assistant"
-                    ? "/ai-icon.png"
+                    ? undefined
                     : session?.user?.image
                 }
               >

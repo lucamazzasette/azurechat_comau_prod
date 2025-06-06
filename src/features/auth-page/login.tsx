@@ -2,7 +2,7 @@
 import { AI_NAME } from "@/features/theme/theme-config";
 import { signIn } from "next-auth/react";
 import { FC } from "react";
-import { Avatar, AvatarImage } from "../ui/avatar";
+import { AssistantAvatar } from "../ui/assistant-avatar";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -20,13 +20,13 @@ interface LoginProps {
 
 export const LogIn: FC<LoginProps> = (props) => {
   return (
-    <Card className="flex gap-2 flex-col min-w-[300px]">
+    <Card className="flex gap-2 flex-col min-h-[500] min-w-[300px]">
       <CardHeader className="gap-2">
-        <CardTitle className="text-2xl flex gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={"ai-icon.png"} />
-          </Avatar>
-          <span className="text-primary">{AI_NAME}</span>
+        <CardTitle className="text-2xl flex items-center gap-4">
+          <div className="flex-shrink-0">
+            <AssistantAvatar size={96} className="h-24 w-24" />
+          </div>
+          <span className="text-primary text-3xl">{AI_NAME}</span>
         </CardTitle>
         <CardDescription>
           Login in with your GitHub or Microsoft 365 account

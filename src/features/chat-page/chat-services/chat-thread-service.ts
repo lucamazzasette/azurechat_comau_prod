@@ -6,7 +6,7 @@ import {
   userHashedId,
   userSession,
 } from "@/features/auth-page/helpers";
-import { RedirectToChatThread } from "@/features/common/navigation-helpers";
+import { RedirectToChat, RedirectToChatThread } from "@/features/common/navigation-helpers";
 import { ServerActionResponse } from "@/features/common/server-action-response";
 import { uniqueId } from "@/features/common/util";
 import {
@@ -321,8 +321,9 @@ export const UpdateChatTitle = async (
     const response = await FindChatThreadForCurrentUser(chatThreadId);
     if (response.status === "OK") {
       const chatThread = response.response;
-      // take the first 30 characters
-      chatThread.name = title.substring(0, 30);
+      // Use the smart title as-is, don't truncate unless necessary
+      chatThread.name = title.length > 50 ? title.substring(0, 47) + "..." : title;
+      chatThread.lastMessageAt = new Date(); // Update timestamp for proper sorting
       return await UpsertChatThread(chatThread);
     }
     return response;
@@ -334,9 +335,123 @@ export const UpdateChatTitle = async (
   }
 };
 
-export const CreateChatAndRedirect = async () => {
-  const response = await CreateChatThread();
-  if (response.status === "OK") {
-    RedirectToChatThread(response.response.id);
+export const FindUnusedChatThreadForCurrentUser = async (): Promise<
+  ServerActionResponse<ChatThreadModel>
+> => {
+  try {
+    // Get all chat threads for the current user
+    const allThreadsResponse = await FindAllChatThreadForCurrentUser();
+    
+    if (allThreadsResponse.status !== "OK") {
+      return {
+        status: "ERROR",
+        errors: [{ message: "Could not fetch chat threads" }],
+      };
+    }
+    
+    // Filter for recent threads (created in the last hour) with default name
+    const oneHourAgo = new Date();
+    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+    
+    const recentThreads = allThreadsResponse.response.filter(thread => 
+      new Date(thread.createdAt) > oneHourAgo && 
+      // Use case-insensitive comparison to handle both "New chat" and "New Chat"
+      thread.name.toLowerCase() === NEW_CHAT_NAME.toLowerCase()
+    );
+    
+    // Check each thread for messages
+    for (const thread of recentThreads) {
+      const messagesResponse = await FindAllChatMessagesForCurrentUser(thread.id);
+      
+      if (messagesResponse.status === "OK" && messagesResponse.response.length === 0) {
+        // Found an unused thread (has no messages)
+        return {
+          status: "OK",
+          response: thread,
+        };
+      }
+    }
+    
+    // No unused threads found
+    return {
+      status: "NOT_FOUND",
+      errors: [{ message: "No unused chat threads found" }],
+    };
+  } catch (error) {
+    return {
+      status: "ERROR",
+      errors: [{ message: `${error}` }],
+    };
+  }
+};
+
+export const CreateChatAndRedirect = async (): Promise<{
+  threadId: string | null;
+  success: boolean;
+  error?: string;
+}> => {
+  try {
+    // First check for existing unused threads
+    console.log("Looking for unused threads...");
+    const unusedThreadResponse = await FindUnusedChatThreadForCurrentUser();
+    
+    let threadId: string | null = null;
+    
+    if (unusedThreadResponse.status === "OK") {
+      // Use the existing unused thread
+      const thread = unusedThreadResponse.response;
+      console.log("Found unused thread:", thread.id, "with name:", thread.name);
+      
+      // Verify thread has a valid name
+      if (!thread.name || thread.name.trim() === '') {
+        console.log("Thread has empty name, setting to default name");
+        thread.name = NEW_CHAT_NAME;
+        await UpsertChatThread(thread);
+      }
+      
+      threadId = thread.id;
+      console.log("Using existing thread:", threadId);
+      
+    } else {
+      console.log("No unused threads found, creating new one...");
+      // Create a new thread
+      const response = await CreateChatThread();
+      
+      if (response.status === "OK") {
+        const newThread = response.response;
+        console.log("New thread created:", newThread.id, "with name:", newThread.name);
+        
+        // Double-check the name was set correctly
+        if (!newThread.name || newThread.name.trim() === '') {
+          console.log("New thread has empty name, setting to default name");
+          newThread.name = NEW_CHAT_NAME;
+          await UpsertChatThread(newThread);
+        }
+        
+        threadId = newThread.id;
+        console.log("Created new thread:", threadId);
+      } else {
+        console.error("Failed to create thread:", response.errors);
+        return {
+          threadId: null,
+          success: false,
+          error: response.errors[0]?.message || "Failed to create thread"
+        };
+      }
+    }
+    
+    // Return the thread ID for client-side navigation
+    return {
+      threadId,
+      success: true
+    };
+    
+  } catch (error) {
+    console.error("Error in CreateChatAndRedirect:", error);
+    return {
+      threadId: null,
+      success: false,
+      error: String(error)
+    };
   }
 };

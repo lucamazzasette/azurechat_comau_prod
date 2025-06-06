@@ -50,11 +50,9 @@ export const UpdateChatThreadTitle = async (props: {
     ...props.chatThread,
     name: props.name,
   });
-
-  RevalidateCache({
-    page: "chat",
-    type: "layout",
-  });
+  
+  // Don't revalidate cache - let client-side state handle UI updates
+  // to avoid full page refresh
 };
 
 export const BookmarkChatThread = async (props: {

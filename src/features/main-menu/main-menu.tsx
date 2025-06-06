@@ -8,7 +8,6 @@ import {
 } from "@/ui/menu";
 import {
   Book,
-  Home,
   MessageCircle,
   PocketKnife,
   Sheet,
@@ -17,6 +16,7 @@ import {
 import { getCurrentUser } from "../auth-page/helpers";
 import { MenuLink } from "./menu-link";
 import { UserProfile } from "./user-profile";
+import { LogoImage } from "./logo-image";
 
 export const MainMenu = async () => {
   const user = await getCurrentUser();
@@ -27,7 +27,7 @@ export const MainMenu = async () => {
         <MenuItemContainer>
           <MenuItem tooltip="Home" asChild>
             <MenuLink href="/chat" ariaLabel="Go to the Home page">
-              <Home {...menuIconProps} />
+              <LogoImage />
             </MenuLink>
           </MenuItem>
           <MenuTrayToggle />
