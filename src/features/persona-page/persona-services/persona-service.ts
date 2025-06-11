@@ -20,6 +20,7 @@ interface PersonaInput {
   name: string;
   description: string;
   personaMessage: string;
+  startMessage?: string;
   isPublished: boolean;
 }
 
@@ -83,6 +84,7 @@ export const CreatePersona = async (
       name: props.name,
       description: props.description,
       personaMessage: props.personaMessage,
+      startMessage: props.startMessage,
       isPublished: user.isAdmin ? props.isPublished : false,
       userId: await userHashedId(),
       createdAt: new Date(),
@@ -194,6 +196,7 @@ export const UpsertPersona = async (
         name: personaInput.name,
         description: personaInput.description,
         personaMessage: personaInput.personaMessage,
+        startMessage: personaInput.startMessage,
         isPublished: user.isAdmin
           ? personaInput.isPublished
           : persona.isPublished,
@@ -303,6 +306,7 @@ export const CreatePersonaChat = async (
       type: CHAT_THREAD_ATTRIBUTE,
       personaMessage: persona.personaMessage,
       personaMessageTitle: persona.name,
+      personaStartMessage: persona.startMessage,
       extension: [],
     });
 

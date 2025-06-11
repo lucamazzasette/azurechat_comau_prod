@@ -58,12 +58,11 @@ export const GetBlob = async (
   containerName: string,
   blobPath: string
 ): Promise<ServerActionResponse<ReadableStream<any>>> => {
-  const blobServiceClient = InitBlobServiceClient();
-
-  const containerClient = blobServiceClient.getContainerClient(containerName);
-  const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
-
   try {
+    const blobServiceClient = InitBlobServiceClient();
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
+    
     const downloadBlockBlobResponse = await blockBlobClient.download(0);
 
     // Passes stream to caller to decide what to do with
@@ -72,7 +71,7 @@ export const GetBlob = async (
         status: "ERROR",
         errors: [
           {
-            message: `Error downloading blob: ${blobPath}`,
+            message: `Error downloading blob: ${blobPath} - No readable stream body`,
           },
         ],
       };
@@ -86,6 +85,7 @@ export const GetBlob = async (
   } catch (error) {
     if (error instanceof RestError) {
       const restError = error as RestError;
+      
       if (restError.statusCode === 404) {
         return {
           status: "NOT_FOUND",
@@ -96,13 +96,23 @@ export const GetBlob = async (
           ],
         };
       }
+      
+      return {
+        status: "ERROR",
+        errors: [
+          {
+            message: `Azure Storage error (${restError.statusCode}): ${restError.message} for blob: ${blobPath}`,
+          },
+        ],
+      };
     }
 
+    console.error("Error downloading blob:", blobPath, error);
     return {
       status: "ERROR",
       errors: [
         {
-          message: `Error downloading blob: ${blobPath}`,
+          message: `Unexpected error downloading blob: ${blobPath} - ${String(error)}`,
         },
       ],
     };

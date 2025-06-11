@@ -9,13 +9,21 @@ const requireAuth: string[] = [
   "/persona",
   "/prompt"
 ];
+
+const excludeFromAuth: string[] = [
+  // Restored authentication for production
+];
 const requireAdmin: string[] = ["/reporting"];
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next();
   const pathname = request.nextUrl.pathname;
 
-  if (requireAuth.some((path) => pathname.startsWith(path))) {
+  // Check if this path requires auth and is not excluded
+  const needsAuth = requireAuth.some((path) => pathname.startsWith(path));
+  const isExcluded = excludeFromAuth.some((path) => pathname.startsWith(path));
+  
+  if (needsAuth && !isExcluded) {
     const token = await getToken({
       req: request,
     });

@@ -32,6 +32,7 @@ export interface ChatThreadModel {
   bookmarked: boolean;
   personaMessage: string;
   personaMessageTitle: string;
+  personaStartMessage?: string;
   extension: string[];
   type: typeof CHAT_THREAD_ATTRIBUTE;
 }

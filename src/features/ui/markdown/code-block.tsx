@@ -1,7 +1,7 @@
 import { CheckIcon, ClipboardIcon } from "lucide-react";
 import { FC, memo, useEffect, useState } from "react";
-import { Prism } from "react-syntax-highlighter";
-const atomOneDark = require("react-syntax-highlighter/dist/styles/atom-one-dark");
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { Button } from "../button";
 
 export const fence = {
@@ -56,9 +56,9 @@ export const CodeBlock: FC<Props> = memo(({ language, children }) => {
         </Button>
       </div>
 
-      <Prism language={language} style={atomOneDark} PreTag="pre" showLineNumbers>
+      <SyntaxHighlighter language={language} style={atomOneDark} PreTag="pre" showLineNumbers>
         {children}
-      </Prism>
+      </SyntaxHighlighter>
     </div>
   );
 });

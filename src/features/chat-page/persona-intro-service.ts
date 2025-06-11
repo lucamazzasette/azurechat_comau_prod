@@ -109,10 +109,17 @@ const generatePersonalitySummary = (personaMessage: string): string => {
  */
 export const generatePersonaIntroMessage = (chatThread: ChatThreadModel): PersonaIntroMessage => {
   const personaName = chatThread.personaMessageTitle || "Assistant";
-  const personalitySummary = generatePersonalitySummary(chatThread.personaMessage);
   
-  // Create the introduction message in first person
-  const introContent = `Hello! I am AICO ${personaName}, specialized in ${personalitySummary}. What can I do for you?`;
+  // Use custom start message if available, otherwise fall back to generated one
+  let introContent: string;
+  
+  if (chatThread.personaStartMessage && chatThread.personaStartMessage.trim() !== "") {
+    introContent = chatThread.personaStartMessage;
+  } else {
+    // Fallback to generated message
+    const personalitySummary = generatePersonalitySummary(chatThread.personaMessage);
+    introContent = `Hello! I am AICO ${personaName}, specialized in ${personalitySummary}. What can I do for you?`;
+  }
   
   return {
     id: `intro-${chatThread.id}`,

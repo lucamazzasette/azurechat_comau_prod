@@ -12,6 +12,7 @@ class PersonaState {
     name: "",
     description: "",
     personaMessage: "",
+    startMessage: "",
     createdAt: new Date(),
     isPublished: false,
     type: "PERSONA",
@@ -44,12 +45,14 @@ class PersonaState {
     name: string;
     description: string;
     personaMessage: string;
+    startMessage: string;
   }) {
     this.persona = {
       ...this.defaultModel,
       name: persona.name,
       description: persona.description,
       personaMessage: persona.personaMessage,
+      startMessage: persona.startMessage,
     };
     this.isOpened = true;
   }
@@ -91,6 +94,7 @@ export const FormDataToPersonaModel = (formData: FormData): PersonaModel => {
     name: formData.get("name") as string,
     description: formData.get("description") as string,
     personaMessage: formData.get("personaMessage") as string,
+    startMessage: (formData.get("startMessage") as string) || "",
     isPublished: formData.get("isPublished") === "on" ? true : false,
     userId: "", // the user id is set on the server once the user is authenticated
     createdAt: new Date(),

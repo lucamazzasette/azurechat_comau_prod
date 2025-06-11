@@ -53,8 +53,6 @@ async function executeCreateImage(
   userMessage: string,
   signal: AbortSignal
 ) {
-  console.log("createImage called with prompt:", args.prompt);
-
   if (!args.prompt) {
     return "No prompt provided";
   }
@@ -80,7 +78,7 @@ async function executeCreateImage(
       }
     );
   } catch (error) {
-    console.error("🔴 error:\n", error);
+    console.error("DALL-E API error:", error);
     return {
       error:
         "There was an error creating the image: " +
@@ -90,7 +88,8 @@ async function executeCreateImage(
   }
 
   // Check the response is valid
-  if (response.data[0].b64_json === undefined) {
+  if (!response.data || !response.data[0] || response.data[0].b64_json === undefined) {
+    console.error("Invalid DALL-E API response");
     return {
       error:
         "There was an error creating the image: Invalid API response received. Return this message to the user and halt execution.",
@@ -101,20 +100,61 @@ async function executeCreateImage(
   const imageName = `${uniqueId()}.png`;
 
   try {
-    await UploadImageToStore(
+    const uploadResult = await UploadImageToStore(
       threadId,
       imageName,
       Buffer.from(response.data[0].b64_json, "base64")
     );
+    
+    if (uploadResult.status !== "OK") {
+      console.error("Image upload failed:", uploadResult.errors);
+      return {
+        error:
+          "There was an error uploading the image: " +
+          uploadResult.errors[0].message +
+          " Return this message to the user and halt execution.",
+      };
+    }
+
+    // Generate the URL
+    let imageUrl: string;
+    try {
+      const urlResult = GetImageUrl(threadId, imageName);
+      
+      // Handle case where GetImageUrl might return a Promise
+      if (urlResult && typeof urlResult === 'object' && 'then' in urlResult) {
+        imageUrl = await urlResult;
+      } else {
+        imageUrl = urlResult;
+      }
+      
+      // Convert to string if it's not already
+      imageUrl = String(imageUrl);
+      
+      // Validate the URL was generated properly
+      if (!imageUrl || imageUrl === "undefined" || imageUrl === "null" || imageUrl.includes("undefined") || imageUrl.includes("null")) {
+        console.error("Invalid image URL generated");
+        return {
+          error:
+            "There was an error generating the image URL. Please check your NEXTAUTH_URL environment variable. Return this message to the user and halt execution.",
+        };
+      }
+    } catch (error) {
+      console.error("Error generating image URL:", error);
+      return {
+        error:
+          "There was an error generating the image URL: " + error + " Return this message to the user and halt execution.",
+      };
+    }
 
     const updated_response = {
       revised_prompt: response.data[0].revised_prompt,
-      url: GetImageUrl(threadId, imageName),
+      url: imageUrl,
     };
-
+    
     return updated_response;
   } catch (error) {
-    console.error("🔴 error:\n", error);
+    console.error("Image storage error:", error);
     return {
       error:
         "There was an error storing the image: " +

@@ -102,12 +102,26 @@ export const AddNewPersona: FC<Props> = (props) => {
               <div className="grid gap-2 flex-1 ">
                 <Label htmlFor="personaMessage">Personality</Label>
                 <Textarea
-                  className="min-h-[300px]"
+                  className="min-h-[200px]"
                   required
                   defaultValue={persona.personaMessage}
                   name="personaMessage"
                   placeholder="Personality of your persona"
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="startMessage">Welcome Message</Label>
+                <Textarea
+                  className="min-h-[120px] resize-none"
+                  required
+                  defaultValue={persona.startMessage}
+                  name="startMessage"
+                  placeholder="e.g., Hello! I'm your ReactJS expert. I can help you build clean, functional components. What would you like to create today?"
+                  maxLength={500}
+                />
+                <div className="text-xs text-muted-foreground">
+                  This message will greet users when they start a conversation with this persona.
+                </div>
               </div>
             </div>
           </ScrollArea>
