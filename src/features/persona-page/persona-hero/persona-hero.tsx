@@ -30,6 +30,7 @@ Expertise:
 Example:
 [Describe an example of the personality e.g. a Marketing copywriter who can write catchy headlines.]`,
             description: "",
+            startMessage: "Hello! I'm here to help you. What can I assist you with today?",
           })
         }
       />
@@ -43,6 +44,7 @@ Example:
             personaMessage:
               "You are an expert in translating English to French. You will be provided with a sentence in English, and your task is to translate it into French.",
             description: "English to French translator.",
+            startMessage: "Bonjour! I'm ready to translate English to French for you. Please provide the English text you'd like me to translate.",
           })
         }
       />
@@ -79,6 +81,7 @@ export { Input };
 
               `,
             description: "Customer service persona.",
+            startMessage: "Hello! I'm your ReactJS expert. I can help you build clean, functional components. What would you like to create today?",
           })
         }
       />
