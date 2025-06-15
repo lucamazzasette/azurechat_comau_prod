@@ -328,11 +328,22 @@ class ChatState {
       return NEW_CHAT_NAME;
     }
     
-    // If it's a greeting, use a generic title
+    // If it's a greeting, use a generic title plus timestamp
     const greetings = /^(hi|hello|hey|good morning|good afternoon|good evening|你好|早上好|下午好|晚上好)/i;
     if (greetings.test(cleanMessage)) {
-      console.log(`[ChatStore] Detected greeting, using default title`);
-      return NEW_CHAT_NAME;
+      const greetingMatch = cleanMessage.match(greetings);
+      const greetingWord = greetingMatch ? greetingMatch[0].toLowerCase() : 'hello';
+      
+      const now = new Date();
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = monthNames[now.getMonth()];
+      const day = now.getDate().toString().padStart(2, '0');
+      const hour = now.getHours().toString().padStart(2, '0');
+      
+      const timestampedTitle = `${greetingWord}_${month}${day}_${hour}`;
+      console.log(`[ChatStore] Generated timestamped greeting title: "${timestampedTitle}"`);
+      return timestampedTitle;
     }
     
     // Better handling for Chinese and English text
