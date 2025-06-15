@@ -28,7 +28,7 @@ export const LogoImage = () => {
   return (
     <div className="flex items-center justify-center h-8 w-8">
       <Image 
-        src={isDark ? "/logo-white.png" : "/logo.png"} 
+        src={isDark ? "/ai-icon-w.png" : "/logo.png"} 
         alt="Logo"
         height={32}
         width={32}
