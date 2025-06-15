@@ -45,6 +45,30 @@ export const ChatHome: FC<ChatHomeProps> = (props) => {
   const current = useRef<HTMLDivElement>(null);
   useChatScrollAnchor({ ref: current });
 
+  //static news data
+type NewsItem = {
+  title: string;
+  text: string;
+  link?: string;
+};
+  const news: NewsItem[] = [
+    {
+      title: "AICO new upgrade",
+      text: "New features and improvements have been added to AICO",
+      link: "#"
+    },
+    {
+      title: "COMAU AI Policy",
+      text: "Keep up to date with the latest AI policy updates from COMAU",
+      link: "https://drive.google.com/file/d/1OXkt4Z9hVoy4rXGFBOhzR9e0LJers5fJ/view"
+    },
+    {
+      title: "PPT Translator",
+      text: "Translate your PowerPoint presentations with AICO",
+      link: "https://aicopt.comau.com/"
+    }
+  ];
+
   return (
     <main className="flex flex-1 relative flex-col">
       <ChatHeader
@@ -55,9 +79,9 @@ export const ChatHome: FC<ChatHomeProps> = (props) => {
       
       {messages.length === 0 ? (
         <ScrollArea className="flex-1">
-          <div className="flex flex-1 flex-col gap-6 pb-6">
+          <div className="flex flex-1 flex-col gap-6 pb-6 mb-32">
             <div className="container max-w-4xl flex gap-20 flex-col">
-              <div>
+              {/* <div>
                 <h2 className="text-2xl font-bold mb-3">Extensions</h2>
                 {props.extensions && props.extensions.length > 0 ? (
                   <div className="grid grid-cols-3 gap-3">
@@ -74,8 +98,35 @@ export const ChatHome: FC<ChatHomeProps> = (props) => {
                 ) : (
                   <p className="text-muted-foreground max-w-xl">No extensions created</p>
                 )}
+              </div> */}
+          <div>
+            <h2 className="text-2xl font-bold mb-3">Highlights</h2>
+            <div>
+              {news && news.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {news.map((item, index) => (
+                    <div key={index} className="rounded-2xl border bg-card text-card-foreground shadow p-4">
+                    <h3 className="text-lg font-semibold mb-1">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">{item.text}</p>
+                    {item.link && (
+                    <a
+                      href={item.link}
+                      className="text-sm text-primary hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Discovy more →
+                    </a>
+                  )}
+                  </div>
+                ))}
+                </div>
+              ) : (
+              <p className="text-muted-foreground">Nessuna news disponibile</p>
+               )}
               </div>
-              
+          </div>
+
               <div>
                 <h2 className="text-2xl font-bold mb-3">Personas</h2>
                 {props.personas && props.personas.length > 0 ? (

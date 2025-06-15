@@ -9,7 +9,7 @@ export const LogoImage = () => {
   const isDark = resolvedTheme === "dark";
   
   return (
-    <div className="flex items-center justify-center" style={{ height: "32px", width: "32px" }}>
+    <div className="flex items-center justify-center h-8 w-8">
       <Image 
         src={isDark ? "/logo-white.png" : "/logo.png"} 
         alt="Logo"
