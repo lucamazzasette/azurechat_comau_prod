@@ -27,7 +27,7 @@ export const MainMenu = async () => {
       <MenuBar>
         <MenuItemContainer>
           <MenuItem tooltip="Home" asChild>
-            <MenuLink href="https://www.comau.com/en/" target="_blank" ariaLabel="Go to the Corporate Site" >
+            <MenuLink href="https://www.comau.com/en/" ariaLabel="Go to the Corporate Site" >
               <LogoImage />
             </MenuLink>
           </MenuItem>
