@@ -12,6 +12,7 @@ import {
   PocketKnife,
   Sheet,
   VenetianMask,
+  Home,
 } from "lucide-react";
 import { getCurrentUser } from "../auth-page/helpers";
 import { MenuLink } from "./menu-link";
@@ -26,16 +27,16 @@ export const MainMenu = async () => {
       <MenuBar>
         <MenuItemContainer>
           <MenuItem tooltip="Home" asChild>
-            <MenuLink href="/chat" ariaLabel="Go to the Home page">
+            <MenuLink href="https://www.comau.com/en/" target="_blank" ariaLabel="Go to the Corporate Site" >
               <LogoImage />
             </MenuLink>
           </MenuItem>
           <MenuTrayToggle />
-        </MenuItemContainer>
-        <MenuItemContainer>
-          <MenuItem tooltip="Chat">
+        {/*</MenuItemContainer>
+        <MenuItemContainer> */}
+          <MenuItem tooltip="Home">
             <MenuLink href="/chat" ariaLabel="Go to the Chat page">
-              <MessageCircle {...menuIconProps} />
+              <Home {...menuIconProps} />
             </MenuLink>
           </MenuItem>
 

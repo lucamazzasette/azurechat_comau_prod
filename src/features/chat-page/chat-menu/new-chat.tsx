@@ -21,7 +21,7 @@ export const NewChat = ({ disabled = false }: NewChatProps) => {
       disabled={isDisabled}
       size={"default"}
       className="flex gap-2"
-      variant={"outline"}
+      variant={"default"}
     >
       {isDisabled ? <LoadingIndicator isLoading={true} /> : <Plus size={18} />}
       New Chat
