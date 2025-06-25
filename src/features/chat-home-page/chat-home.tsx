@@ -53,14 +53,14 @@ type NewsItem = {
 };
   const news: NewsItem[] = [
     {
-      title: "AICO new upgrade",
-      text: "New features and improvements have been added to AICO",
-      link: "#"
+      title: "What's new on AICO",
+      text: "We're thrilled to announce some major upgrades to our AI solution that will enhance your experience and productivity.",
+      link: "https://docs.google.com/document/d/1A-BMwI0wUEMvUq7FtCT8sk83az5aH6rJiKjVm-98GSw/edit?tab=t.0#heading=h.up4knif3vprz"
     },
     {
-      title: "COMAU AI Policy",
-      text: "Keep up to date with the latest AI policy updates from COMAU",
-      link: "https://drive.google.com/file/d/1OXkt4Z9hVoy4rXGFBOhzR9e0LJers5fJ/view"
+      title: "AI Suggest training",
+      text: "Discover our new Generative AI courses: boost your skills, stay ahead of the curve, and explore the future of work with cutting-edge training designed for all employees. Start today!",
+      link: "https://comau.percipio.com/search?categories=Course&expertiseLevels=BEGINNER&q=introduction%20to%20generative%20ai&ratings=4"
     },
     {
       title: "PPT Translator",
@@ -128,7 +128,7 @@ type NewsItem = {
           </div>
 
               <div>
-                <h2 className="text-2xl font-bold mb-3">Personas</h2>
+                <h2 className="text-2xl font-bold mb-3">Comau Prompt</h2>
                 {props.personas && props.personas.length > 0 ? (
                   <div className="grid grid-cols-3 gap-3">
                     {props.personas.map((persona) => {
