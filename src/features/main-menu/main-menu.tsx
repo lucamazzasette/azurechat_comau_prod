@@ -13,6 +13,7 @@ import {
   Sheet,
   VenetianMask,
   Home,
+  History
 } from "lucide-react";
 import { getCurrentUser } from "../auth-page/helpers";
 import { MenuLink } from "./menu-link";
@@ -42,7 +43,7 @@ export const MainMenu = async () => {
 
           <MenuItem tooltip="Chat History">
             <MenuLink href="/chat-history" ariaLabel="Go to the Chat History page">
-              <Home {...menuIconProps} />
+              <History {...menuIconProps} />
             </MenuLink>
           </MenuItem>
 
