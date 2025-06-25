@@ -21,6 +21,7 @@ interface PersonaInput {
   description: string;
   personaMessage: string;
   startMessage?: string;
+  starterPrompts?: string[];
   isPublished: boolean;
 }
 
@@ -85,6 +86,7 @@ export const CreatePersona = async (
       description: props.description,
       personaMessage: props.personaMessage,
       startMessage: props.startMessage,
+      starterPrompts: props.starterPrompts,
       isPublished: user.isAdmin ? props.isPublished : false,
       userId: await userHashedId(),
       createdAt: new Date(),
@@ -197,6 +199,7 @@ export const UpsertPersona = async (
         description: personaInput.description,
         personaMessage: personaInput.personaMessage,
         startMessage: personaInput.startMessage,
+        starterPrompts: personaInput.starterPrompts,
         isPublished: user.isAdmin
           ? personaInput.isPublished
           : persona.isPublished,
@@ -307,6 +310,7 @@ export const CreatePersonaChat = async (
       personaMessage: persona.personaMessage,
       personaMessageTitle: persona.name,
       personaStartMessage: persona.startMessage,
+      starterPrompts: persona.starterPrompts,
       extension: [],
     });
 

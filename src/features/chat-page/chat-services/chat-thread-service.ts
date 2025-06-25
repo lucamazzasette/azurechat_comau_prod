@@ -288,6 +288,7 @@ export const CreateChatThread = async (): Promise<
       type: CHAT_THREAD_ATTRIBUTE,
       personaMessage: "",
       personaMessageTitle: CHAT_DEFAULT_PERSONA,
+      starterPrompts: undefined,
       extension: [],
     };
 

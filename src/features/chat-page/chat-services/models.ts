@@ -33,6 +33,7 @@ export interface ChatThreadModel {
   personaMessage: string;
   personaMessageTitle: string;
   personaStartMessage?: string;
+  starterPrompts?: string[];
   extension: string[];
   type: typeof CHAT_THREAD_ATTRIBUTE;
 }

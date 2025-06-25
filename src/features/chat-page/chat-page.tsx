@@ -103,7 +103,18 @@ export const ChatPage: FC<ChatPageProps> = (props) => {
           {loading === "loading" && <ChatLoading />}
         </ChatMessageContentArea>
       </ChatMessageContainer>
-      <ChatInput />
+      <ChatInput 
+        starterPrompts={props.chatThread.starterPrompts}
+        personaName={props.chatThread.personaMessageTitle}
+        showStarterPrompts={
+          props.messages.length === 0 && 
+          props.chatThread.starterPrompts && 
+          props.chatThread.starterPrompts.length > 0 &&
+          !!props.chatThread.personaMessageTitle && 
+          typeof props.chatThread.personaMessageTitle === 'string' &&
+          props.chatThread.personaMessageTitle.trim() !== ""
+        }
+      />
     </main>
   );
 };

@@ -31,6 +31,10 @@ export const PersonaModelSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  starterPrompts: z
+    .array(z.string())
+    .length(3)
+    .optional(),
   isPublished: z.boolean(),
   type: z.literal(PERSONA_ATTRIBUTE),
   createdAt: z.date(),

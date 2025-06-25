@@ -123,6 +123,35 @@ export const AddNewPersona: FC<Props> = (props) => {
                   This message will greet users when they start a conversation with this persona.
                 </div>
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="starterPrompts">Starter Prompts (Optional)</Label>
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    name="starterPrompt1"
+                    defaultValue={persona.starterPrompts?.[0] || ""}
+                    placeholder="First starter prompt (auto-generated if left empty)"
+                    maxLength={100}
+                  />
+                  <Input
+                    type="text"
+                    name="starterPrompt2"
+                    defaultValue={persona.starterPrompts?.[1] || ""}
+                    placeholder="Second starter prompt (auto-generated if left empty)"
+                    maxLength={100}
+                  />
+                  <Input
+                    type="text"
+                    name="starterPrompt3"
+                    defaultValue={persona.starterPrompts?.[2] || ""}
+                    placeholder="Third starter prompt (auto-generated if left empty)"
+                    maxLength={100}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  These prompts help users get started with your persona. Leave empty to auto-generate based on personality.
+                </div>
+              </div>
             </div>
           </ScrollArea>
           <SheetFooter className="py-2 flex sm:justify-between flex-row">

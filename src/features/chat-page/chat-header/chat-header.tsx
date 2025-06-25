@@ -76,7 +76,10 @@ export const ChatHeader: FC<Props> = (props) => {
         </div>
         <div className="flex gap-3">
           <PersonaDetail chatThread={props.chatThread} />
-          <DocumentDetail chatDocuments={props.chatDocuments} />
+          <DocumentDetail 
+            chatDocuments={props.chatDocuments} 
+            chatThreadId={props.chatThread.id}
+          />
           {/* <ExtensionDetail
             disabled={props.chatDocuments.length !== 0}
             extensions={props.extensions}
