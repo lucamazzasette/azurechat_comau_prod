@@ -55,7 +55,7 @@ type NewsItem = {
     {
       title: "What's new on AICO",
       text: "We're thrilled to announce some major upgrades to our AI solution that will enhance your experience and productivity.",
-      link: "https://docs.google.com/document/d/1A-BMwI0wUEMvUq7FtCT8sk83az5aH6rJiKjVm-98GSw/edit?tab=t.0#heading=h.up4knif3vprz"
+      link: "https://thehub.comau.com/home/ls/content/6175256365779179/15072025_AICOUpgrade"
     },
     {
       title: "AI Suggest training",
