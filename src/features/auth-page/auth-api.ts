@@ -45,23 +45,26 @@ const configureIdentityProvider = () => {
         tenantId: process.env.AZURE_AD_TENANT_ID!,
         authorization: {
           params: {
-            scope: "openid profile User.Read", 
+            scope: "openid profile email",
+            response_mode: "query",
+            response_type: "code",
+            redirect_uri: process.env.NODE_ENV === 'development' 
+              ? 'http://localhost:3000/api/auth/callback/azure-ad'
+              : `${process.env.NEXTAUTH_URL || 'https://aico.comau.com'}/api/auth/callback/azure-ad`
           },
         },
-        async profile(profile, tokens) {
+        checks: ["state", "nonce"],
+        profile(profile) {
           const email = profile.email || profile.preferred_username || "";
-          const image = await fetchProfilePicture(`https://graph.microsoft.com/v1.0/me/photos/48x48/$value`, tokens.access_token);
-          const newProfile = {
-            ...profile,
-            email,
-            id: profile.sub,
+          return {
+            id: email,
+            name: profile.name,
+            email: email,
+            image: null,
             isAdmin:
               adminEmails?.includes(profile.email?.toLowerCase()) ||
               adminEmails?.includes(profile.preferred_username?.toLowerCase()),
-            image: image,
           };
-          console.log("Azure AD profile:", newProfile);
-          return newProfile;
         },
       })
     );
@@ -131,19 +134,41 @@ export const fetchProfilePicture = async (profilePictureUrl: string, accessToken
 
 
 export const options: NextAuthOptions = {
+  debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
   providers: [...configureIdentityProvider()],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
+    },
     async jwt({ token, user }) {
       if (user?.isAdmin) {
         token.isAdmin = user.isAdmin;
+      }
+      // If user just signed in, ensure we have proper ID
+      if (user && user.id) {
+        token.sub = user.id;
+      } else if (user && user.email) {
+        token.sub = user.email;
       }
       return token;
     },
     async session({ session, token, user }) {
       session.user.isAdmin = token.isAdmin as boolean;
+      // Add user ID to the session from the token
+      if (token?.sub && session?.user) {
+        session.user.id = token.sub as string;
+      }
       return session;
     },
+  },
+  pages: {
+    signIn: "/",
+    error: "/",  // Redirect errors to home page with login
   },
   session: {
     strategy: "jwt",
