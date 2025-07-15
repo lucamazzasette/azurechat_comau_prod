@@ -1,11 +1,8 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GitHubProvider from "next-auth/providers/github";
 import { Provider } from "next-auth/providers/index";
 import { hashValue } from "./helpers";
-import { image } from "@markdoc/markdoc/dist/src/schema";
-import { access } from "fs";
 
 const configureIdentityProvider = () => {
   const providers: Array<Provider> = [];
@@ -13,25 +10,6 @@ const configureIdentityProvider = () => {
   const adminEmails = process.env.ADMIN_EMAIL_ADDRESS?.split(",").map((email) =>
     email.toLowerCase().trim()
   );
-
-  if (process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET) {
-    providers.push(
-      GitHubProvider({
-        clientId: process.env.AUTH_GITHUB_ID!,
-        clientSecret: process.env.AUTH_GITHUB_SECRET!,
-        async profile(profile) {
-          const image = await fetchProfilePicture(profile.avatar_url, null);
-          const newProfile = {
-            ...profile,
-            isAdmin: adminEmails?.includes(profile.email.toLowerCase()),
-            image: image,
-          };
-          console.log("GitHub profile:", newProfile);
-          return newProfile;
-        },
-      })
-    );
-  }
 
   if (
     process.env.AZURE_AD_CLIENT_ID &&
@@ -45,26 +23,54 @@ const configureIdentityProvider = () => {
         tenantId: process.env.AZURE_AD_TENANT_ID!,
         authorization: {
           params: {
-            scope: "openid profile email",
-            response_mode: "query",
+            scope: "openid profile email User.Read",
             response_type: "code",
-            redirect_uri: process.env.NODE_ENV === 'development' 
-              ? 'http://localhost:3000/api/auth/callback/azure-ad'
-              : `${process.env.NEXTAUTH_URL || 'https://aico.comau.com'}/api/auth/callback/azure-ad`
+            response_mode: "query",
           },
         },
-        checks: ["state", "nonce"],
-        profile(profile) {
+        async profile(profile, tokens) {
+          console.log("Azure AD profile received:", { 
+            email: profile.email, 
+            preferred_username: profile.preferred_username,
+            sub: profile.sub 
+          });
+          
           const email = profile.email || profile.preferred_username || "";
-          return {
-            id: email,
-            name: profile.name,
-            email: email,
-            image: null,
+          
+          // Don't block authentication on profile picture fetching
+          let profileImage = "";
+          try {
+            // Fetch profile picture asynchronously without blocking
+            fetchProfilePicture(`https://graph.microsoft.com/v1.0/me/photos/48x48/$value`, tokens.access_token)
+              .then((image) => {
+                if (image) {
+                  console.log("Profile picture fetched successfully (async)");
+                }
+              })
+              .catch((error) => {
+                console.warn("Profile picture fetch failed (non-blocking):", error.message);
+              });
+          } catch (error) {
+            console.warn("Profile picture fetch error (non-blocking):", error);
+          }
+          
+          const newProfile = {
+            ...profile,
+            email,
+            id: profile.sub,
             isAdmin:
               adminEmails?.includes(profile.email?.toLowerCase()) ||
               adminEmails?.includes(profile.preferred_username?.toLowerCase()),
+            image: profileImage, // Start with empty, will be updated async
           };
+          
+          console.log("Azure AD profile processed:", {
+            id: newProfile.id,
+            email: newProfile.email,
+            isAdmin: newProfile.isAdmin
+          });
+          
+          return newProfile;
         },
       })
     );
@@ -109,69 +115,140 @@ const configureIdentityProvider = () => {
   return providers;
 };
 
-export const fetchProfilePicture = async (profilePictureUrl: string, accessToken: any): Promise<any> => {
-  console.log("Fetching profile picture...");
-  var image = null
-  const profilePicture = await fetch(
-    profilePictureUrl,
-    accessToken && {
+export const fetchProfilePicture = async (profilePictureUrl: string, accessToken: any): Promise<string | null> => {
+  if (!accessToken) {
+    console.warn("No access token provided for profile picture fetch");
+    return null;
+  }
+
+  try {
+    console.log("Fetching profile picture...");
+    
+    const response = await fetch(profilePictureUrl, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
+      // Add timeout to prevent hanging requests
+      signal: AbortSignal.timeout(10000), // 10 second timeout
+    });
+
+    if (!response.ok) {
+      // Don't treat 404 as an error - user might not have a profile picture
+      if (response.status === 404) {
+        console.log("No profile picture found (404) - this is normal");
+        return null;
+      }
+      
+      console.warn(`Profile picture fetch failed: ${response.status} ${response.statusText}`);
+      return null;
     }
-  );
-  if (profilePicture.ok) {
-    console.log("Profile picture fetched successfully.");
-    const pictureBuffer = await profilePicture.arrayBuffer();
+
+    const pictureBuffer = await response.arrayBuffer();
+    
+    if (pictureBuffer.byteLength === 0) {
+      console.warn("Profile picture is empty");
+      return null;
+    }
+
     const pictureBase64 = Buffer.from(pictureBuffer).toString("base64");
-    image = `data:image/jpeg;base64,${pictureBase64}`;
+    const image = `data:image/jpeg;base64,${pictureBase64}`;
+    
+    console.log("Profile picture fetched successfully");
+    return image;
+    
+  } catch (error: any) {
+    // Handle different types of errors gracefully
+    if (error.name === 'TimeoutError') {
+      console.warn("Profile picture fetch timeout - continuing without image");
+    } else if (error.name === 'AbortError') {
+      console.warn("Profile picture fetch aborted - continuing without image");
+    } else {
+      console.warn("Profile picture fetch error:", error.message);
+    }
+    return null;
   }
-  else {
-    console.error("Failed to fetch profile picture:", profilePictureUrl, profilePicture.statusText);
-  }
-  return image;
 };
 
 
 export const options: NextAuthOptions = {
-  debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
   providers: [...configureIdentityProvider()],
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+    async jwt({ token, user, account }) {
+      try {
+        if (user?.isAdmin) {
+          token.isAdmin = user.isAdmin;
+        }
+        
+        // Add account information for debugging
+        if (account) {
+          console.log("JWT callback - Account provider:", account.provider);
+        }
+        
+        return token;
+      } catch (error) {
+        console.error("JWT callback error:", error);
+        return token;
+      }
     },
-    async jwt({ token, user }) {
-      if (user?.isAdmin) {
-        token.isAdmin = user.isAdmin;
+    async session({ session, token }) {
+      try {
+        session.user.isAdmin = token.isAdmin as boolean;
+        
+        // Add user ID to session
+        if (token.sub) {
+          session.user.id = token.sub;
+        }
+        
+        console.log("Session created for user:", session.user.email);
+        return session;
+      } catch (error) {
+        console.error("Session callback error:", error);
+        return session;
       }
-      // If user just signed in, ensure we have proper ID
-      if (user && user.id) {
-        token.sub = user.id;
-      } else if (user && user.email) {
-        token.sub = user.email;
-      }
-      return token;
     },
-    async session({ session, token, user }) {
-      session.user.isAdmin = token.isAdmin as boolean;
-      // Add user ID to the session from the token
-      if (token?.sub && session?.user) {
-        session.user.id = token.sub as string;
+    async signIn({ user, account, profile }) {
+      try {
+        console.log("Sign-in attempt:", {
+          provider: account?.provider,
+          email: user.email,
+          userId: user.id
+        });
+        
+        // Allow sign-in for Azure AD and credentials providers
+        if (account?.provider === "azure-ad" || account?.provider === "credentials") {
+          return true;
+        }
+        
+        return false;
+      } catch (error) {
+        console.error("Sign-in callback error:", error);
+        return false;
       }
-      return session;
     },
   },
   pages: {
     signIn: "/",
-    error: "/",  // Redirect errors to home page with login
+    error: "/auth/error",
   },
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours
+  },
+  debug: process.env.NODE_ENV === "development",
+  logger: {
+    error(code, metadata) {
+      console.error("NextAuth Error:", code, metadata);
+    },
+    warn(code) {
+      console.warn("NextAuth Warning:", code);
+    },
+    debug(code, metadata) {
+      if (process.env.DEBUG === "true") {
+        console.log("NextAuth Debug:", code, metadata);
+      }
+    },
   },
 };
 

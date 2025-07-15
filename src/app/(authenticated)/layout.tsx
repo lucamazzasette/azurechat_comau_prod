@@ -1,4 +1,3 @@
-import { AuthenticatedProviders } from "@/features/globals/providers";
 import { MainMenu } from "@/features/main-menu/main-menu";
 import { AI_NAME } from "@/features/theme/theme-config";
 import { cn } from "@/ui/lib";
@@ -10,17 +9,15 @@ export const metadata = {
   description: AI_NAME,
 };
 
-export default function RootLayout({
+export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <AuthenticatedProviders>
-      <div className={cn("flex flex-1 items-stretch")}>
-        <MainMenu />
-        <div className="flex-1 flex">{children}</div>
-      </div>
-    </AuthenticatedProviders>
+    <div className={cn("flex flex-1 items-stretch")}>
+      <MainMenu />
+      <div className="flex-1 flex">{children}</div>
+    </div>
   );
 }
