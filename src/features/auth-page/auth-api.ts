@@ -184,6 +184,20 @@ export const options: NextAuthOptions = {
         // Add account information for debugging
         if (account) {
           console.log("JWT callback - Account provider:", account.provider);
+          
+          // Log OAuth callback debugging info for production
+          if (account.provider === "azure-ad") {
+            console.log("Azure AD OAuth callback details:", {
+              provider: account.provider,
+              type: account.type,
+              providerAccountId: account.providerAccountId,
+              tokenType: account.token_type,
+              scope: account.scope,
+              accessTokenExpires: account.expires_at,
+              environment: process.env.NODE_ENV,
+              nextAuthUrl: process.env.NEXTAUTH_URL
+            });
+          }
         }
         
         return token;
@@ -213,18 +227,67 @@ export const options: NextAuthOptions = {
         console.log("Sign-in attempt:", {
           provider: account?.provider,
           email: user.email,
-          userId: user.id
+          userId: user.id,
+          environment: process.env.NODE_ENV,
+          nextAuthUrl: process.env.NEXTAUTH_URL
         });
         
-        // Allow sign-in for Azure AD and credentials providers
-        if (account?.provider === "azure-ad" || account?.provider === "credentials") {
+        // Enhanced validation for Azure AD
+        if (account?.provider === "azure-ad") {
+          // Validate that we have required profile data
+          if (!user.email && !user.name) {
+            console.error("Azure AD sign-in failed: Missing required user profile data");
+            return false;
+          }
+          
+          // Log success for production debugging
+          console.log("Azure AD sign-in successful:", {
+            email: user.email,
+            name: user.name,
+            timestamp: new Date().toISOString()
+          });
+          
           return true;
         }
         
+        // Allow credentials provider for development
+        if (account?.provider === "credentials") {
+          return true;
+        }
+        
+        console.warn("Sign-in rejected: Unsupported provider", account?.provider);
         return false;
       } catch (error) {
         console.error("Sign-in callback error:", error);
         return false;
+      }
+    },
+    async redirect({ url, baseUrl }) {
+      try {
+        console.log("Redirect callback:", { url, baseUrl, nextAuthUrl: process.env.NEXTAUTH_URL });
+        
+        // Handle production redirect properly
+        const nextAuthUrl = process.env.NEXTAUTH_URL || baseUrl;
+        
+        // If url is relative, make it absolute using the correct base URL
+        if (url.startsWith("/")) {
+          const redirectUrl = new URL(url, nextAuthUrl).toString();
+          console.log("Redirecting to relative URL:", redirectUrl);
+          return redirectUrl;
+        }
+        
+        // If url is absolute and matches our domain, allow it
+        if (url.startsWith(nextAuthUrl)) {
+          console.log("Redirecting to same-origin URL:", url);
+          return url;
+        }
+        
+        // Default to base URL for safety
+        console.log("Redirecting to base URL for security:", nextAuthUrl);
+        return nextAuthUrl;
+      } catch (error) {
+        console.error("Redirect callback error:", error);
+        return baseUrl;
       }
     },
   },
@@ -236,20 +299,46 @@ export const options: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 hours
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === "development" || process.env.DEBUG === "true",
   logger: {
     error(code, metadata) {
       console.error("NextAuth Error:", code, metadata);
+      
+      // Enhanced logging for OAuth callback errors
+      if (code === "OAUTH_CALLBACK_ERROR" || code === "OAUTH_CALLBACK_HANDLER_ERROR") {
+        console.error("OAuth Callback Error Details:", {
+          error: code,
+          metadata,
+          nextAuthUrl: process.env.NEXTAUTH_URL,
+          environment: process.env.NODE_ENV,
+          timestamp: new Date().toISOString()
+        });
+      }
     },
     warn(code) {
       console.warn("NextAuth Warning:", code);
     },
     debug(code, metadata) {
-      if (process.env.DEBUG === "true") {
+      if (process.env.DEBUG === "true" || process.env.NODE_ENV === "development") {
         console.log("NextAuth Debug:", code, metadata);
       }
     },
   },
+  // Add specific configuration for production
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" 
+        ? `__Secure-next-auth.session-token` 
+        : `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === "production"
+      }
+    }
+  }
 };
 
 export const handlers = NextAuth(options);
