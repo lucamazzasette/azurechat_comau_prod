@@ -43,15 +43,24 @@ const configureIdentityProvider = () => {
         clientId: process.env.AZURE_AD_CLIENT_ID!,
         clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
         tenantId: process.env.AZURE_AD_TENANT_ID!,
-        async profile(profile) {
+        authorization: {
+          params: {
+            scope: "openid profile User.Read", 
+          },
+        },
+        async profile(profile, tokens) {
+          const email = profile.email || profile.preferred_username || "";
+          const image = await fetchProfilePicture(`https://graph.microsoft.com/v1.0/me/photos/48x48/$value`, tokens.access_token);
           const newProfile = {
             ...profile,
-            // throws error without this - unsure of the root cause (https://stackoverflow.com/questions/76244244/profile-id-is-missing-in-google-oauth-profile-response-nextauth)
+            email,
             id: profile.sub,
             isAdmin:
-              adminEmails?.includes(profile.email.toLowerCase()) ||
-              adminEmails?.includes(profile.preferred_username.toLowerCase()),
+              adminEmails?.includes(profile.email?.toLowerCase()) ||
+              adminEmails?.includes(profile.preferred_username?.toLowerCase()),
+            image: image,
           };
+          console.log("Azure AD profile:", newProfile);
           return newProfile;
         },
       })
