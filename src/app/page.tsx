@@ -6,9 +6,11 @@ export default async function Home() {
   return (
     <main className="container max-w-lg flex items-center">
       <LogIn
-        isDevMode={process.env.NODE_ENV === "development"}
-        githubEnabled={!!process.env.AUTH_GITHUB_ID}
-        entraIdEnabled={!!process.env.AZURE_AD_CLIENT_ID}
+        azureAdEnabled={!!(
+          process.env.AZURE_AD_CLIENT_ID &&
+          process.env.AZURE_AD_CLIENT_SECRET &&
+          process.env.AZURE_AD_TENANT_ID
+        )}
       />
     </main>
   );

@@ -13,9 +13,7 @@ import {
 } from "../ui/card";
 
 interface LoginProps {
-  isDevMode: boolean;
-  githubEnabled: boolean;
-  entraIdEnabled: boolean;
+  azureAdEnabled: boolean;
 }
 
 export const LogIn: FC<LoginProps> = (props) => {
@@ -33,16 +31,13 @@ export const LogIn: FC<LoginProps> = (props) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        {props.githubEnabled && (
-          <Button onClick={() => signIn("github")}>GitHub</Button>
-        )}
-        {props.entraIdEnabled && (
-          <Button onClick={() => signIn("azure-ad")}>Using Comau Account</Button>
-        )}
-        {props.isDevMode && (
-          <Button onClick={() => signIn("localdev")}>
-            Basic Auth (DEV ONLY)
-          </Button>
+        {props.azureAdEnabled ? (
+          <Button onClick={() => signIn("azure-ad")}>Sign in with Comau Account</Button>
+        ) : (
+          <div className="text-center text-red-600">
+            <p>Azure AD authentication is not configured.</p>
+            <p className="text-sm mt-2">Please contact your administrator.</p>
+          </div>
         )}
       </CardContent>
     </Card>
