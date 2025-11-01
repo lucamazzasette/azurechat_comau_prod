@@ -9,6 +9,9 @@ const configureIdentityProvider = () => {
     email.toLowerCase().trim()
   );
 
+  // Check if we're in build mode (no NEXTAUTH_URL typically means build time)
+  const isBuildTime = typeof window === 'undefined' && !process.env.NEXTAUTH_URL;
+
   // Only Azure AD provider is supported
   if (
     process.env.AZURE_AD_CLIENT_ID &&
@@ -73,8 +76,10 @@ const configureIdentityProvider = () => {
         },
       })
     );
-  } else {
-    throw new Error("Azure AD configuration missing. Please ensure AZURE_AD_CLIENT_ID, AZURE_AD_CLIENT_SECRET, and AZURE_AD_TENANT_ID are set.");
+  } else if (!isBuildTime) {
+    // Only warn at runtime, not during build
+    console.warn("Azure AD configuration missing. Please ensure AZURE_AD_CLIENT_ID, AZURE_AD_CLIENT_SECRET, and AZURE_AD_TENANT_ID are set in your environment variables.");
+    console.warn("Authentication will not work without these environment variables.");
   }
 
   return providers;
