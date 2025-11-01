@@ -12,7 +12,7 @@ export const Disclaimer = () => {
       >
         Referred Policy
       </a>
-      . AICO Model Last update October 2023
+      . AICO Model Last update June 2024
     </div>
   );
 };
